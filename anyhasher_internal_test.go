@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -71,4 +72,31 @@ func TestSerialise(t *testing.T) {
 		buf.Bytes(),
 	)
 
+}
+
+func TestWithTime(t *testing.T) {
+	n := time.Now()
+	obj := struct {
+		A string
+		T time.Time
+		P *time.Time
+		Z string
+	}{
+		"It's currently",
+		n,
+		&n,
+		"o'clock",
+	}
+
+	var buf bytes.Buffer
+	serialise(&buf, reflect.ValueOf(&obj))
+	res1 := buf.Bytes()
+
+	obj.T = obj.T.Add(time.Second)
+
+	var buf2 bytes.Buffer
+	serialise(&buf2, reflect.ValueOf(&obj))
+	res2 := buf2.Bytes()
+
+	require.NotEqual(t, res1, res2)
 }

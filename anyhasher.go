@@ -107,9 +107,6 @@ func serialiseMap(w io.Writer, val reflect.Value) {
 	}
 
 	kv.sort()
-	// sort.Slice(kv, func(i, j int) bool {
-	// 	return bytes.Compare(kv[i].name, kv[j].name) < 0
-	// })
 
 	for i := range kv {
 		w.Write(kv[i].name)
@@ -118,6 +115,15 @@ func serialiseMap(w io.Writer, val reflect.Value) {
 }
 
 func serialiseStruct(w io.Writer, val reflect.Value) {
+	if mbm := val.MethodByName("MarshalBinary"); mbm.IsValid() {
+		vr := mbm.Call([]reflect.Value{})
+
+		if !vr[0].IsNil() {
+			w.Write(vr[0].Bytes())
+			return
+		}
+	}
+
 	vtype := val.Type()
 	flen := vtype.NumField()
 	kv := make(keyValues, 0, flen)

@@ -10,6 +10,7 @@ import (
 	"hash/crc32"
 	"math"
 	"testing"
+	"time"
 
 	"github.com/freman/anyhasher"
 	"github.com/stretchr/testify/require"
@@ -192,4 +193,24 @@ func TestBYOHash(t *testing.T) {
 		crc32Hasher.Sum(nil),
 	)
 
+}
+
+func TestWithTime(t *testing.T) {
+	obj := struct {
+		A string
+		T time.Time
+		Z string
+	}{
+		"It's currently",
+		time.Now(),
+		"o'clock",
+	}
+
+	hash := anyhasher.SHA512(obj)
+
+	obj.T = time.Now().Add(time.Second)
+
+	hash2 := anyhasher.SHA512(obj)
+
+	require.NotEqual(t, hash, hash2, "Time changing should change the hash")
 }
